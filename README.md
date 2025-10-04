@@ -97,13 +97,6 @@ User Query → Supervisor → [Law Agent | Procedure Agent | General Agent]
 
 ---
 
-### Installation
-
-```bash
-# Clone repository
-git clone https://github.com/Rajatsharma786/lexi_lawagent.git
-cd lexi_lawagent
-
 ## Usage Examples
 
 **Legislative Query**:
