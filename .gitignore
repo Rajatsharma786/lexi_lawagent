@@ -1,0 +1,37 @@
+# Ignore environment files
+.env
+
+# Ignore image and PDF files
+*.png
+*.jpg
+*.jpeg
+*.pdf
+
+# Ignore data folder
+data/
+
+# Ignore Chroma DB files
+chroma/
+laws_db_chroma/
+procedures_db_chroma/
+
+# Ignore oldapp.py
+src/oldapp.py
+
+# Ignore temporary files
+*.tmp
+*.log
+*.bak
+
+# Ignore Python cache files
+__pycache__/
+*.pyc
+*.pyo
+
+# Ignore virtual environment folders
+venv/
+env/
+
+# Ignore IDE-specific files
+.vscode/
+.idea/
