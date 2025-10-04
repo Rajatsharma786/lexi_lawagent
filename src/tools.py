@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import sys
 import os
 from io import BytesIO
 from typing import Any, Dict, List, Optional
@@ -12,19 +13,34 @@ from reportlab.lib.pagesizes import letter #type: ignore
 from reportlab.pdfgen import canvas #type: ignore
 
 from retriever import build_final_retriever_from_chroma
+from blob_sync import choose_chroma_dir
 from redis_caching import RedisCache
-from pathlib import Path
+from pathlib import Path 
 from dotenv import load_dotenv
 load_dotenv()
 
 PROJECT_ROOT = Path(__file__).parent.parent
 
 
-LAWS_DB_DIR = str(PROJECT_ROOT / "laws_db_chroma")
-PROC_DB_DIR = str(PROJECT_ROOT / "procedures_db_chroma")
-LAWS_COLL = "laws_db"
-PROC_DB_DIR = "procedures_db_chroma"
-PROC_COLL = "procedures_db"
+DEFAULT_LAWS_DIR = str(PROJECT_ROOT / "laws_db_chroma")
+DEFAULT_PROCS_DIR = str(PROJECT_ROOT / "procedures_db_chroma")
+
+LAWS_DB_DIR = choose_chroma_dir(
+    env_var_dir="LAWS_CHROMA_DIR",
+    env_var_sas="LAWS_CHROMA_SAS_URL",
+    subdir_name="laws_db_chroma",
+    default_dir=DEFAULT_LAWS_DIR,
+)
+
+PROC_DB_DIR = choose_chroma_dir(
+    env_var_dir="PROCS_CHROMA_DIR",
+    env_var_sas="PROCS_CHROMA_SAS_URL",
+    subdir_name="procedures_db_chroma",
+    default_dir=DEFAULT_PROCS_DIR,
+)
+
+LAWS_COLL = os.getenv("LAWS_CHROMA_COLLECTION", "laws_db")
+PROC_COLL = os.getenv("PROCS_CHROMA_COLLECTION", "procedures_db")
 
 # Build retrievers once
 laws_retriever = build_final_retriever_from_chroma(LAWS_DB_DIR, LAWS_COLL)
