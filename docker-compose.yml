@@ -1,8 +1,11 @@
 version: '3.8'
 
 services:
+  # Production Service
   lexi-law-agent:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile  # Use the main Dockerfile for production
     container_name: lexi-law-agent
     ports:
       - "8501:8501"
@@ -43,6 +46,36 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+
+  # Test Service
+  lexi-law-agent-test:
+    build:
+      context: .
+      dockerfile: Dockerfile  # Use the same Dockerfile for multi-stage builds
+      target: builder         # Use the builder stage for testing
+    container_name: lexi-law-agent-test
+    environment:
+      # OpenAI
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      
+      # Azure Blob Storage
+      - LAWS_CHROMA_SAS_URL=${LAWS_CHROMA_SAS_URL}
+      - PROCS_CHROMA_SAS_URL=${PROCS_CHROMA_SAS_URL}
+      - CHROMA_CACHE_DIR=./.chroma_cache
+      
+      # Redis Cloud
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      
+    volumes:
+      # Persist ChromaDB cache
+      - chroma-cache:/app/.chroma_cache
+      - laws-db:/app/laws_db_chroma
+      - procedures-db:/app/procedures_db_chroma
+    
+    command: pytest test_file.py --cov=src --cov-report=html
+    restart: "no"
 
 volumes:
   chroma-cache:
