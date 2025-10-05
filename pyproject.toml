@@ -1,0 +1,41 @@
+[tool.pytest.ini_options]
+# Pytest configuration for Lexi Law Agent
+
+# Test discovery patterns
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+
+# Test paths
+testpaths = ["."]
+
+# Minimum version
+minversion = "7.0"
+
+# Show extra test summary info
+addopts = """
+    -v
+    --tb=short
+    --strict-markers
+    --disable-warnings
+    -p no:warnings
+"""
+
+# Markers for organizing tests
+markers = [
+    "integration: Integration tests that require external services",
+    "performance: Performance and benchmark tests",
+    "security: Security-related tests",
+    "slow: Tests that take a long time to run",
+]
+
+# Coverage options (if using pytest-cov)
+# Uncomment if you install pytest-cov
+# [tool.coverage.run]
+# source = ["src"]
+# omit = ["*/tests/*", "*/__pycache__/*", "*/venv/*"]
+
+# [tool.coverage.report]
+# precision = 2
+# show_missing = true
+# skip_covered = false

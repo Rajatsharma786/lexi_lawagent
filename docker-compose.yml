@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  lexi-law-agent:
+    build: .
+    container_name: lexi-law-agent
+    ports:
+      - "8501:8501"
+    environment:
+      # OpenAI
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      
+      # Azure PostgreSQL
+      - AZURE_POSTGRES_HOST=${AZURE_POSTGRES_HOST}
+      - AZURE_POSTGRES_DB=${AZURE_POSTGRES_DB}
+      - AZURE_POSTGRES_USER=${AZURE_POSTGRES_USER}
+      - AZURE_POSTGRES_PASSWORD=${AZURE_POSTGRES_PASSWORD}
+      
+      # Azure Blob Storage
+      - LAWS_CHROMA_SAS_URL=${LAWS_CHROMA_SAS_URL}
+      - PROCS_CHROMA_SAS_URL=${PROCS_CHROMA_SAS_URL}
+      - CHROMA_CACHE_DIR=./.chroma_cache
+      
+      # Redis Cloud
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      
+      # Phoenix Tracing (optional)
+      - ARIZE_PHNX=${ARIZE_PHNX}
+    
+    volumes:
+      # Persist ChromaDB cache
+      - chroma-cache:/app/.chroma_cache
+      - laws-db:/app/laws_db_chroma
+      - procedures-db:/app/procedures_db_chroma
+    
+    restart: unless-stopped
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  chroma-cache:
+  laws-db:
+  procedures-db:

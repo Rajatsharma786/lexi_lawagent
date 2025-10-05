@@ -1,0 +1,79 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+*.md
+!DOCKER.md
+LICENSE
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+.venv/
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Data (too large for image)
+data/
+*.pdf
+*.jpg
+*.jpeg
+*.png
+Image.jpg
+sample_summons_melbourne_magistrates_court.pdf
+
+# ChromaDB local (will sync from Azure)
+laws_db_chroma/
+procedures_db_chroma/
+.chroma_cache/
+
+# Notebooks
+notebook/
+*.ipynb
+
+# Old files
+oldapp.py
+src/oldapp.py
+
+# Logs
+*.log
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Environment (use docker-compose env vars)
+.env
+.env.*
+!.env.example

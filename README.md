@@ -97,6 +97,54 @@ User Query → Supervisor → [Law Agent | Procedure Agent | General Agent]
 
 ---
 
+## 🚀 Deployment
+
+### Option 1: Local Setup
+
+```bash
+# Clone repository
+git clone https://github.com/Rajatsharma786/lexi_lawagent.git
+cd lexi_lawagent
+
+# Create virtual environment
+python -m venv .venv
+.venv\Scripts\activate  # Windows
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Configure environment
+cp .env.example .env
+# Edit .env with your credentials
+
+# Run application
+streamlit run src/app.py
+```
+
+### Option 2: Docker Deployment 🐳
+
+**Quick Start**:
+```bash
+# Configure environment
+cp .env.example .env
+# Edit .env with your credentials
+
+# Build and run
+docker-compose up -d
+
+# Access at http://localhost:8501
+```
+
+**Manual Docker Build**:
+```bash
+docker build -t lexi-law-agent .
+docker run -p 8501:8501 --env-file .env lexi-law-agent
+```
+
+See [DOCKER.md](DOCKER.md) for detailed deployment instructions.
+
+---
+
 ## Usage Examples
 
 **Legislative Query**:
@@ -152,12 +200,53 @@ User Query → Supervisor → [Law Agent | Procedure Agent | General Agent]
 1. Define tool in `tools.py` with `@tool` decorator
 2. Bind tool to agent in `agentsandnodes.py`
 
-# Test Streamlit UI
-streamlit run src/app.py
+### Testing
+
+Run the comprehensive test suite:
+
+```bash
+# Run all tests
+pytest test_file.py -v
+
+# Run quick tests only
+pytest test_file.py -v -m "not integration and not performance"
+
+# Run with coverage report
+pytest test_file.py --cov=src --cov-report=html
+
+# Use test runner scripts
+# Windows:
+run-tests.bat
+
+# Linux/Mac:
+./run-tests.sh
+```
+
+**Test Coverage**:
+- ✅ Repository structure & imports
+- ✅ Authentication & security
+- ✅ Agent system functionality  
+- ✅ Redis caching & Azure Blob sync
+- ✅ Docker configuration
 
 ---
 
-## 🙏 Acknowledgments
+## 🤝 Contributing
+
+Contributions welcome! Please:
+1. Fork the repository
+2. Create a feature branch
+3. **Run tests**: `pytest test_file.py -v`
+4. Commit your changes
+5. Open a Pull Request
+
+**Ideas**: Multi-jurisdiction support, analytics dashboard, mobile app, test coverage
+
+---
+
+## 📜 License
+
+MIT License - see [LICENSE](LICENSE) file for details
 
 - **Victorian Legislation**: [legislation.vic.gov.au](https://www.legislation.vic.gov.au)
 - **LangChain/LangGraph**: Multi-agent framework
