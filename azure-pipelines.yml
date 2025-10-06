@@ -1,0 +1,138 @@
+# PR validation + CI build & push to ACR
+# - PRs: run unit tests only
+# - main: run tests then build & push to ACR
+
+trigger:
+- main
+
+pr:
+- main
+
+resources:
+- repo: self
+
+variables:
+  # Update these 2 to match your environment
+  acrServiceConnection: 'acr-lexi'          # Service connection name in Azure DevOps
+  imageRepository: 'lexi-law-agent'         # ACR repo name (no server part)
+
+  dockerfilePath: '$(Build.SourcesDirectory)/Dockerfile'
+  buildContext:  '$(Build.SourcesDirectory)'
+
+  tags: |
+    $(Build.BuildId)
+    latest
+
+stages:
+# ==================== TEST STAGE ====================
+- stage: Test
+  displayName: Run unit tests
+  jobs:
+  - job: UnitTests
+    displayName: Unit tests (self-hosted Windows)
+    pool:
+      name: microsoftpoolagent  # your self-hosted pool
+
+    steps:
+    - checkout: self
+
+    # 1) Set execution policy for this process only
+    - powershell: |
+        Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process -Force
+      displayName: Set PowerShell execution policy
+
+    # 2) Install Python 3.11.9 on the agent if not present
+    - powershell: |
+        $pythonPath = "C:\Python311\python.exe"
+        if (Test-Path $pythonPath) {
+            Write-Host "Python found at $pythonPath"
+            & $pythonPath --version
+        } else {
+            Write-Host "Installing Python 3.11.9..."
+            $installerUrl  = "https://www.python.org/ftp/python/3.11.9/python-3.11.9-amd64.exe"
+            $installerPath = "$env:TEMP\py311-setup.exe"
+            Invoke-WebRequest -Uri $installerUrl -OutFile $installerPath
+            Start-Process -FilePath $installerPath -ArgumentList "/quiet InstallAllUsers=1 TargetDir=C:\Python311 PrependPath=1" -Wait
+            if (Test-Path $pythonPath) { & $pythonPath --version } else { throw "Python installation failed" }
+        }
+      displayName: Install Python 3.11.9 (if missing)
+
+    # 3) Put Python on PATH for the rest of the job
+    - powershell: |
+        $env:Path = "C:\Python311;C:\Python311\Scripts;" + $env:Path
+        python --version
+        pip --version
+      displayName: Configure Python PATH
+
+    # 4) Install deps + run tests
+    - powershell: |
+        $env:Path = "C:\Python311;C:\Python311\Scripts;" + $env:Path
+
+        Write-Host "Upgrading pip..."
+        python -m pip install --upgrade pip
+
+        Write-Host "Installing requirements..."
+        python -m pip install -r requirements.txt pytest pytest-cov
+
+        Write-Host "Running tests..."
+        python -m pytest test_file.py `
+          --cov=src `
+          --cov-report=xml `
+          --cov-report=html `
+          --cov-report=term-missing `
+          -v
+      displayName: Install deps and run pytest
+      env:
+        # if your tests need them, define these in DevOps Library > Variables
+        OPENAI_API_KEY: $(OPENAI_API_KEY)
+        REDIS_HOST:     $(REDIS_HOST)
+        REDIS_PORT:     $(REDIS_PORT)
+        REDIS_PASSWORD: $(REDIS_PASSWORD)
+
+    # 5) Publish coverage (Cobertura) + test results (optional)
+    - task: PublishCodeCoverageResults@2
+      inputs:
+        codeCoverageTool: 'Cobertura'
+        summaryFileLocation: '$(System.DefaultWorkingDirectory)/**/coverage.xml'
+      condition: succeededOrFailed()
+
+    - task: PublishTestResults@2
+      inputs:
+        testResultsFormat: 'JUnit'
+        testResultsFiles: '**/test-results.xml'
+        searchFolder: '$(System.DefaultWorkingDirectory)'
+        failTaskOnFailedTests: true
+      condition: succeededOrFailed()
+
+# ==================== BUILD STAGE ====================
+- stage: Build
+  displayName: Build and push Docker image
+  dependsOn: Test
+  # Skip building images on PRs; only build on main/CI
+  condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+
+  jobs:
+  - job: BuildPush
+    displayName: Docker build & push to ACR
+    pool:
+      name: microsoftpoolagent   # your self-hosted pool
+
+    steps:
+    - checkout: self
+
+    # (Optional) Building with BuildKit for better caching & perf
+    - task: Docker@2
+      displayName: Build & push image
+      env:
+        DOCKER_BUILDKIT: 1
+      inputs:
+        command: buildAndPush
+        containerRegistry: $(acrServiceConnection)
+        repository: $(imageRepository)
+        dockerfile: $(dockerfilePath)
+        buildContext: $(buildContext)
+        arguments: >-
+          --pull
+          --build-arg BUILDKIT_INLINE_CACHE=1
+          --cache-from $(ACR_LOGIN_SERVER)/$(imageRepository):latest
+        tags: $(tags)

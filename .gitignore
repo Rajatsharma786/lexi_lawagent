@@ -55,6 +55,7 @@ procedures_db_chroma/
 
 # Ignore oldapp.py
 src/oldapp.py
+old_docker
 
 # Ignore temporary files
 *.tmp
