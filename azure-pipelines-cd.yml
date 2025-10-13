@@ -1,0 +1,100 @@
+# cd-azurewebapp.yml
+# Deployment pipeline for Azure Web App (Container)
+# Trigger: Manual or wired to CI pipeline
+
+trigger: none   # Set to 'none' for manual trigger; wire to CI pipeline if needed
+
+resources:
+  pipelines:
+  - pipeline: ci
+    source: '<YOUR_CI_PIPELINE_NAME>'  # Replace with your CI pipeline name
+    trigger:
+      branches:
+        include:
+        - main
+
+variables:
+  # Replace with your Azure DevOps service connection name
+  azureServiceConnection: '<YOUR_AZURE_SERVICE_CONNECTION>'
+
+  # Replace with your Azure resource group and app name
+  resourceGroup: '<YOUR_RESOURCE_GROUP>'
+  appName: '<YOUR_APP_NAME>'
+
+  # Replace with your Azure Container Registry (ACR) details
+  acr: '<YOUR_ACR_LOGIN_SERVER>'  # ACR login server (FQDN)
+  imageRepository: '<YOUR_IMAGE_REPOSITORY>'
+  imageTag: 'latest'  # Use 'latest' or specify a tag
+
+stages:
+- stage: Deploy
+  displayName: Deploy to Azure Web App (Container)
+  jobs:
+  - job: Deploy
+    pool:
+      name: self-hosted-agent  # Replace with your agent pool name
+    steps:
+    - task: AzureCLI@2
+      displayName: Configure container image + app settings
+      inputs:
+        azureSubscription: $(azureServiceConnection)
+        scriptType: ps
+        scriptLocation: inlineScript
+        inlineScript: |
+          # Define variables for deployment
+          $rg        = "$(resourceGroup)"
+          $app       = "$(appName)"
+          $acrLogin  = "$(acr)"
+          $img       = "$(imageRepository)"
+          $tag       = "$(imageTag)"
+
+          $imageName = "${acrLogin}/${img}:${tag}"
+
+          # Assign Managed Identity to the Web App
+          az webapp identity assign -g $rg -n $app | Out-Null
+
+          # Point the app at your container image
+          az webapp config container set `
+            --resource-group $rg `
+            --name $app `
+            --container-image-name "$imageName" `
+            --container-registry-url "https://$acrLogin"
+
+          # Enable Managed Identity for ACR pulls
+          az resource update `
+            --resource-group $rg `
+            --name $app `
+            --resource-type "Microsoft.Web/sites" `
+            --set properties.webSocketsEnabled=true `
+            --set properties.siteConfig.acrUseManagedIdentityCreds=true | Out-Null
+
+          # Configure app settings
+          az webapp config set `
+            --resource-group $rg `
+            --name $app `
+            --web-sockets-enabled true `
+            --startup-file "python -m streamlit run src/app.py --server.address 0.0.0.0 --server.port 8501 --server.enableCORS false --server.enableXsrfProtection false" | Out-Null
+
+          # Set container app settings
+          az webapp config appsettings set `
+            --resource-group $rg `
+            --name $app `
+            --settings `
+              WEBSITES_PORT=8501 `
+              WEBSITES_CONTAINER_START_TIME_LIMIT=1800 `
+              WEBSITES_ENABLE_APP_SERVICE_STORAGE=false `
+              SCM_DO_BUILD_DURING_DEPLOYMENT=false `
+              STREAMLIT_SERVER_HEADLESS=true `
+              STREAMLIT_SERVER_ADDRESS=0.0.0.0 `
+              STREAMLIT_SERVER_PORT=8501 `
+              STREAMLIT_SERVER_ENABLECORS=false `
+              STREAMLIT_SERVER_ENABLEXSRFPROTECTION=false | Out-Null
+
+          # Restart the Web App
+          az webapp restart -g $rg -n $app | Out-Null
+
+          # Verify configuration
+          $fx  = az webapp show -g $rg -n $app --query "siteConfig.linuxFxVersion" -o tsv
+          $mi  = az webapp show -g $rg -n $app --query "siteConfig.acrUseManagedIdentityCreds" -o tsv
+          Write-Host "linuxFxVersion -> $fx"
+          Write-Host "acrUseManagedIdentityCreds -> $mi"

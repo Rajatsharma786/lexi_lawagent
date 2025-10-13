@@ -12,13 +12,17 @@ resources:
 - repo: self
 
 variables:
-  # Update these 2 to match your environment
-  acrServiceConnection: 'acr-lexi'          # Service connection name in Azure DevOps
-  imageRepository: 'lexi-law-agent'         # ACR repo name (no server part)
+  # Replace with your Azure DevOps service connection name for ACR
+  acrServiceConnection: '<YOUR_ACR_SERVICE_CONNECTION>'  # Service connection name in Azure DevOps
 
+  # Replace with your ACR repository name (no server part)
+  imageRepository: '<YOUR_IMAGE_REPOSITORY>'
+
+  # Path to the Dockerfile and build context
   dockerfilePath: '$(Build.SourcesDirectory)/Dockerfile'
   buildContext:  '$(Build.SourcesDirectory)'
 
+  # Tags for the Docker image
   tags: |
     $(Build.BuildId)
     latest
@@ -31,7 +35,7 @@ stages:
   - job: UnitTests
     displayName: Unit tests (self-hosted Windows)
     pool:
-      name: microsoftpoolagent  # your self-hosted pool
+      name: self-hosted-agent  # Replace with your self-hosted pool name
 
     steps:
     - checkout: self
@@ -43,30 +47,30 @@ stages:
 
     # 2) Install Python 3.11.9 on the agent if not present
     - powershell: |
-        $pythonPath = "C:\Python311\python.exe"
+        $pythonPath = "C:\\Python311\\python.exe"
         if (Test-Path $pythonPath) {
             Write-Host "Python found at $pythonPath"
             & $pythonPath --version
         } else {
             Write-Host "Installing Python 3.11.9..."
             $installerUrl  = "https://www.python.org/ftp/python/3.11.9/python-3.11.9-amd64.exe"
-            $installerPath = "$env:TEMP\py311-setup.exe"
+            $installerPath = "$env:TEMP\\py311-setup.exe"
             Invoke-WebRequest -Uri $installerUrl -OutFile $installerPath
-            Start-Process -FilePath $installerPath -ArgumentList "/quiet InstallAllUsers=1 TargetDir=C:\Python311 PrependPath=1" -Wait
+            Start-Process -FilePath $installerPath -ArgumentList "/quiet InstallAllUsers=1 TargetDir=C:\\Python311 PrependPath=1" -Wait
             if (Test-Path $pythonPath) { & $pythonPath --version } else { throw "Python installation failed" }
         }
       displayName: Install Python 3.11.9 (if missing)
 
     # 3) Put Python on PATH for the rest of the job
     - powershell: |
-        $env:Path = "C:\Python311;C:\Python311\Scripts;" + $env:Path
+        $env:Path = "C:\\Python311;C:\\Python311\\Scripts;" + $env:Path
         python --version
         pip --version
       displayName: Configure Python PATH
 
-    # 4) Install deps + run tests
+    # 4) Install dependencies and run tests
     - powershell: |
-        $env:Path = "C:\Python311;C:\Python311\Scripts;" + $env:Path
+        $env:Path = "C:\\Python311;C:\\Python311\\Scripts;" + $env:Path
 
         Write-Host "Upgrading pip..."
         python -m pip install --upgrade pip
@@ -81,9 +85,9 @@ stages:
           --cov-report=html `
           --cov-report=term-missing `
           -v
-      displayName: Install deps and run pytest
+      displayName: Install dependencies and run pytest
       env:
-        # if your tests need them, define these in DevOps Library > Variables
+        # Define these variables in Azure DevOps Library > Variables
         OPENAI_API_KEY: $(OPENAI_API_KEY)
         REDIS_HOST:     $(REDIS_HOST)
         REDIS_PORT:     $(REDIS_PORT)
@@ -115,12 +119,12 @@ stages:
   - job: BuildPush
     displayName: Docker build & push to ACR
     pool:
-      name: microsoftpoolagent   # your self-hosted pool
+      name: self-hosted-agent   # Replace with your self-hosted pool name
 
     steps:
     - checkout: self
 
-    # (Optional) Building with BuildKit for better caching & perf
+    # (Optional) Building with BuildKit for better caching & performance
     - task: Docker@2
       displayName: Build & push image
       env:

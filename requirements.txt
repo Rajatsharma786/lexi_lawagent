@@ -1,24 +1,42 @@
+# Core web framework
 streamlit
+python-dotenv
+
+# LangChain ecosystem
 langchain
 langchain-openai
 langchain-community
 langgraph
+
+# Vector database
 chromadb
+
+# Cloud storage & databases
 azure-storage-blob
 psycopg2-binary
 redis
+
+# ML/AI - CPU ONLY versions (saves ~3GB)
 sentence-transformers
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch --index-url https://download.pytorch.org/whl/cpu
+torchvision --index-url https://download.pytorch.org/whl/cpu
+transformers
+
+# OCR and document processing
 pytesseract
 pdf2image
 pdfplumber
-pytest
-python-dotenv
-arize-phoenix-otel
-torch
-torchvision
-transformers
+python-doctr[cpu]  # CPU version instead of [torch]
 reportlab
 Pillow
-python-doctr[torch]
+
+# Monitoring (optional - remove if not used)
+arize-phoenix-otel
 opentelemetry-api
 opentelemetry-sdk
+
+# Testing (only for development)
+pytest
+ipython==8.26.0
+opencv-python-headless
