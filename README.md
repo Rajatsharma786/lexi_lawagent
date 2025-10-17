@@ -9,19 +9,19 @@ An intelligent multi-agent legal assistant specialized in Victorian (Australia) 
 
 ---
 
-## 🎯 Overview
+## Overview
 
 Lexi is a production-ready AI legal assistant that helps users:
-- 🔍 Understand Victorian Acts, regulations, and statutory rules
-- 📋 Generate court forms for Magistrate, Supreme, and Federal courts
-- 📄 Analyze legal documents (PDFs, images) using OCR
-- 💬 Get instant answers with intelligent agent routing
+- Understand Victorian Acts, regulations, and statutory rules
+- Generate court forms for Magistrate, Supreme, and Federal courts
+- Analyze legal documents (PDFs, images) using OCR
+- Get instant answers with intelligent agent routing
 
 **Tech Stack**: LangGraph • Streamlit • Azure Blob • Azure Postgres • OpenAI GPT • Redis Cloud • Azure Devops
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ### High-Level System Flow
 
@@ -79,7 +79,7 @@ User Query → Supervisor → [Law Agent | Procedure Agent | General Agent]
 
 ---
 
-## 🚀 Deployment
+## Deployment
 
 ### Option 1: Local Setup
 
@@ -103,7 +103,7 @@ cp .env.example .env
 streamlit run src/app.py
 ```
 
-### Option 2: Docker Deployment 🐳
+### Option 2: Docker Deployment
 
 **Quick Start**:
 ```bash
@@ -192,10 +192,10 @@ run-tests.bat
 ```
 
 **Test Coverage**:
-- ✅ Repository structure & imports
-- ✅ Authentication & security
-- ✅ Agent system functionality  
-- ✅ Redis caching & Azure Blob sync
-- ✅ Docker configuration
+- Repository structure & imports
+- Authentication & security
+- Agent system functionality  
+- Redis caching & Azure Blob sync
+- Docker configuration
 
 ---
