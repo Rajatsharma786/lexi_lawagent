@@ -25,26 +25,8 @@ Lexi is a production-ready AI legal assistant that helps users:
 
 ### High-Level System Flow
 
-```
-User → Authentication (Azure PostgreSQL) → Streamlit UI
-                                              │
-                                      Supervisor Agent
-                                              │
-                        ┌─────────────────────┼────────────────┐
-                        ▼                     ▼                ▼
-                   Law Agent          Procedure Agent    General Agent
-                        │                     │
-                  ┌─────┴─────┐         ┌─────┴─────┐
-                  │           │         │           │
-            Redis Cache   ChromaDB  Redis Cache  ChromaDB
-                  │       (local)       │       (local)
-                  │    (synced from     │    (synced from
-                  │    Azure Blob)      │    Azure Blob)
-                  │                     │
-                  └──────────┬──────────┘
-                             ▼
-                      LLM Response → UI
-```
+<img width="2801" height="4565" alt="lexi-flow-diagram" src="https://github.com/user-attachments/assets/98920185-ca33-4f7d-96b9-77a6c3767789" />
+
 
 ### Key Components
 
