@@ -399,9 +399,27 @@ def load_main_application():
 
                 clean_final = _strip_agent_prefix(full_response).strip()
 
-                # Check for PDF generation
-                if ".pdf" in full_response and "successfully generated" in full_response:
+                # Check for PDF generation and extract file path
+                if ".pdf" in full_response:
                     st.success("✅ Form generated successfully!")
+                    
+                    # Extract the PDF file path from the response
+                    # Look for file paths in the response (e.g., C:\Users\...\file.pdf or /tmp/file.pdf)
+                    import re
+                    pdf_path_match = re.search(r'([A-Za-z]:\\[^\s]+\.pdf|/[^\s]+\.pdf)', full_response)
+                    
+                    if pdf_path_match:
+                        pdf_path = pdf_path_match.group(1)
+                        if os.path.exists(pdf_path):
+                            with open(pdf_path, "rb") as pdf_file:
+                                pdf_data = pdf_file.read()
+                                st.download_button(
+                                    label="📥 Download PDF",
+                                    data=pdf_data,
+                                    file_name=os.path.basename(pdf_path),
+                                    mime="application/pdf",
+                                    key=f"download_pdf_{st.session_state.thread_id}_{len(st.session_state.chat_history)}"
+                                )
 
                 # Final display (ensure complete response is shown)
                 response_placeholder.markdown(full_response)

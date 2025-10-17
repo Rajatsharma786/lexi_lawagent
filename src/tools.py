@@ -5,6 +5,7 @@ import sys
 import os
 from io import BytesIO
 from typing import Any, Dict, List, Optional
+import tempfile
 
 from langchain_core.documents import Document
 from langchain_core.tools import tool
@@ -129,17 +130,17 @@ def generate_court_form(
     try:
         buffer = BytesIO()
         c = canvas.Canvas(buffer, pagesize=letter)
-        
+
         # Add form fields
         c.setFont("Helvetica", 12)
         y = 750  # Starting y position
-        
+
         # Add form title
         c.setFont("Helvetica-Bold", 14)
         c.drawString(50, y, "SUPREME COURT OF VICTORIA")
         c.drawString(50, y-20, title)
         c.drawString(50, y-40, subtitle)
-        
+
         # Add dynamic fields
         y = y - 80
         field_count = 0
@@ -153,7 +154,7 @@ def generate_court_form(
             c.setFont("Helvetica", 12)
             c.drawString(50, y-15, "_" * 70)
             y -= 40
-            
+
         # Add instructions if provided
         if instructions:
             if y < 150:
@@ -165,16 +166,20 @@ def generate_court_form(
             for line in instructions.split("\n"):
                 c.drawString(50, y, line)
                 y -= 15
-                
+
         c.save()
-        
+        print("PDF canvas saved successfully.")
+
         # Save to file
         pdf_data = buffer.getvalue()
         filename = f"{title.lower().replace(' ', '_')}.pdf"
-        with open(filename, "wb") as f:
+        file_path = os.path.join(tempfile.gettempdir(), filename)
+        with open(file_path, "wb") as f:
             f.write(pdf_data)
+        print(f"PDF file saved at: {file_path}")
 
-        return f"✓ Form successfully generated and saved as: {filename}"
-        
+        return file_path  # Return the file path for download
+
     except Exception as e:
+        print(f"Error during PDF generation: {str(e)}")
         return f"✗ Error generating form: {str(e)}"
