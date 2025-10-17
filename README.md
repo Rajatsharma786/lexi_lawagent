@@ -9,42 +9,24 @@ An intelligent multi-agent legal assistant specialized in Victorian (Australia) 
 
 ---
 
-## 🎯 Overview
+## Overview
 
 Lexi is a production-ready AI legal assistant that helps users:
-- 🔍 Understand Victorian Acts, regulations, and statutory rules
-- 📋 Generate court forms for Magistrate, Supreme, and Federal courts
-- 📄 Analyze legal documents (PDFs, images) using OCR
-- 💬 Get instant answers with intelligent agent routing
+- Understand Victorian Acts, regulations, and statutory rules
+- Generate court forms for Magistrate, Supreme, and Federal courts
+- Analyze legal documents (PDFs, images) using OCR
+- Get instant answers with intelligent agent routing
 
-**Tech Stack**: LangGraph • Streamlit • ChromaDB • OpenAI GPT • Redis Cloud • Azure
+**Tech Stack**: LangGraph • Streamlit • Azure Blob • Azure Postgres • OpenAI GPT • Redis Cloud • Azure Devops
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ### High-Level System Flow
 
-```
-User → Authentication (Azure PostgreSQL) → Streamlit UI
-                                              │
-                                      Supervisor Agent
-                                              │
-                        ┌─────────────────────┼────────────────┐
-                        ▼                     ▼                ▼
-                   Law Agent          Procedure Agent    General Agent
-                        │                     │
-                  ┌─────┴─────┐         ┌─────┴─────┐
-                  │           │         │           │
-            Redis Cache   ChromaDB  Redis Cache  ChromaDB
-                  │       (local)       │       (local)
-                  │    (synced from     │    (synced from
-                  │    Azure Blob)      │    Azure Blob)
-                  │                     │
-                  └──────────┬──────────┘
-                             ▼
-                      LLM Response → UI
-```
+<img width="2801" height="4565" alt="lexi-flow-diagram" src="https://github.com/user-attachments/assets/98920185-ca33-4f7d-96b9-77a6c3767789" />
+
 
 ### Key Components
 
@@ -97,7 +79,7 @@ User Query → Supervisor → [Law Agent | Procedure Agent | General Agent]
 
 ---
 
-## 🚀 Deployment
+## Deployment
 
 ### Option 1: Local Setup
 
@@ -121,7 +103,7 @@ cp .env.example .env
 streamlit run src/app.py
 ```
 
-### Option 2: Docker Deployment 🐳
+### Option 2: Docker Deployment
 
 **Quick Start**:
 ```bash
@@ -187,19 +169,6 @@ See [DOCKER.md](DOCKER.md) for detailed deployment instructions.
 
 ---
 
-## Development
-
-### Adding New Agents
-
-1. Define agent node in `agentsandnodes.py`
-2. Update supervisor routing logic
-3. Add node to graph in `agent_flow_calling.py`
-
-### Adding New Tools
-
-1. Define tool in `tools.py` with `@tool` decorator
-2. Bind tool to agent in `agentsandnodes.py`
-
 ### Testing
 
 Run the comprehensive test suite:
@@ -223,41 +192,10 @@ run-tests.bat
 ```
 
 **Test Coverage**:
-- ✅ Repository structure & imports
-- ✅ Authentication & security
-- ✅ Agent system functionality  
-- ✅ Redis caching & Azure Blob sync
-- ✅ Docker configuration
-
----
-
-## 🤝 Contributing
-
-Contributions welcome! Please:
-1. Fork the repository
-2. Create a feature branch
-3. **Run tests**: `pytest test_file.py -v`
-4. Commit your changes
-5. Open a Pull Request
-
-**Ideas**: Multi-jurisdiction support, analytics dashboard, mobile app, test coverage
-
----
-
-## 📜 License
-
-MIT License - see [LICENSE](LICENSE) file for details
-
-- **Victorian Legislation**: [legislation.vic.gov.au](https://www.legislation.vic.gov.au)
-- **LangChain/LangGraph**: Multi-agent framework
-- **Arize Phoenix**: Observability platform
-- **Legal BERT**: [nlpaueb/legal-bert-base-uncased](https://huggingface.co/nlpaueb/legal-bert-base-uncased)
-
----
-
-## 📧 Contact
-
-**GitHub**: [@Rajatsharma786](https://github.com/Rajatsharma786)  
-**Repository**: [lexi_lawagent](https://github.com/Rajatsharma786/lexi_lawagent)
+- Repository structure & imports
+- Authentication & security
+- Agent system functionality  
+- Redis caching & Azure Blob sync
+- Docker configuration
 
 ---
