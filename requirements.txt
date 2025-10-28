@@ -3,10 +3,11 @@ streamlit
 python-dotenv
 
 # LangChain ecosystem
-langchain
-langchain-openai
-langchain-community
-langgraph
+langchain==0.3.27
+langchain-openai==0.3.33
+langchain-core==0.3.79
+langchain-community==0.3.30
+langgraph==1.0.1
 
 # Vector database
 chromadb

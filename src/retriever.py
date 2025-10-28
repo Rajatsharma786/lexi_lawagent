@@ -7,11 +7,10 @@ import torch    # type: ignore
 from langchain_openai import ChatOpenAI
 from langchain_core.documents import Document
 from langchain_community.vectorstores import Chroma   # type: ignore
-from langchain.embeddings import HuggingFaceEmbeddings
-from langchain.retrievers.contextual_compression import ContextualCompressionRetriever
-from langchain.retrievers.document_compressors import LLMChainFilter
+from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain.retrievers import ContextualCompressionRetriever
+from langchain.retrievers.document_compressors import LLMChainFilter, CrossEncoderReranker
 from langchain_community.cross_encoders import HuggingFaceCrossEncoder   # type: ignore
-from langchain.retrievers.document_compressors import CrossEncoderReranker
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 from sentence_transformers import SentenceTransformer  # type: ignore
@@ -26,10 +25,12 @@ from dotenv import load_dotenv
 load_dotenv()
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-EMBED_MODEL = "nlpaueb/legal-bert-base-uncased"
+# EMBED_MODEL = "nlpaueb/legal-bert-base-uncased"
+EMBED_MODEL = "nlpaueb/legal-bert-small-uncased"
 
 llm = ChatOpenAI(model="gpt-4o-mini", temperature=0, streaming=True)
-sentence_model = SentenceTransformer(EMBED_MODEL, device=DEVICE)
+sentence_model = SentenceTransformer(EMBED_MODEL, device=DEVICE,model_kwargs={"load_in_8bit": True, "device_map": "auto"})
+
 embeddings = HuggingFaceEmbeddings(model_name=EMBED_MODEL,model_kwargs={"device": "cpu"})
 
 def build_final_retriever_from_chroma(persist_dir: str, collection: str) -> ContextualCompressionRetriever:
